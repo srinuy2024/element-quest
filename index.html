@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ElementQuest: Periodic Table Game for Kids 🧪✨</title>
+  <!-- Mobile PWA Metadata -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom Stylesheet with Cache Busting -->
+  <link rel="stylesheet" href="css/styles.css?v=2">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <script>
+    // Ensure any stale service worker and old cache from v1 is cleared
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        for (let reg of regs) {
+          reg.update();
+        }
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        for (let name of names) {
+          if (name === 'element-quest-v1') caches.delete(name);
+        }
+      });
+    }
+  </script>
+</head>
+<body class="antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 sm:px-4 py-2.5 sm:py-3 shadow-lg">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
+      
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center gap-2 sm:gap-3 cursor-pointer select-none" id="brand-logo-btn">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-xl sm:text-2xl shadow-lg shadow-indigo-500/30 animate-pulse">
+          🧪
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-pink-400 to-sky-400 tracking-tight leading-none">
+            ElementQuest
+          </h1>
+          <p class="text-[10px] sm:text-[11px] text-slate-400 font-medium hidden sm:block">The Periodic Table Science Adventure for Kids!</p>
+        </div>
+      </div>
+
+      <!-- Stats Badges & Action Controls -->
+      <div class="flex items-center gap-1.5 sm:gap-2.5">
+        <!-- Score XP -->
+        <div class="bg-amber-950/80 border border-amber-500/50 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl flex items-center gap-1 shadow">
+          <span class="text-xs sm:text-sm">🏆</span>
+          <span class="text-[11px] sm:text-xs font-bold text-amber-300"><span id="header-score">0</span> XP</span>
+        </div>
+
+        <!-- Discovered Elements -->
+        <div class="bg-indigo-950/80 border border-indigo-500/50 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-xl flex items-center gap-1 shadow">
+          <span class="text-xs sm:text-sm">⭐</span>
+          <span class="text-[11px] sm:text-xs font-bold text-indigo-300"><span id="discovered-count">0</span>/118</span>
+        </div>
+
+        <!-- Desktop Action Buttons -->
+        <div class="hidden md:flex items-center gap-1.5">
+          <!-- Fullscreen Button -->
+          <button id="btn-toggle-fullscreen" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-bold text-slate-300 transition flex items-center gap-1 shadow" title="Toggle Fullscreen App Mode">
+            ⛶ <span>Fullscreen</span>
+          </button>
+
+          <!-- Diploma Button -->
+          <button id="btn-open-diploma" class="px-2.5 py-1.5 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black rounded-xl text-xs shadow flex items-center gap-1 transition active:scale-95">
+            🎓 <span>Diploma</span>
+          </button>
+
+          <!-- Help Guide Button -->
+          <button id="btn-help-guide" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-bold text-indigo-300 transition flex items-center gap-1">
+            ❓ <span>Help</span>
+          </button>
+        </div>
+
+        <!-- Audio & Speech Controls -->
+        <div class="flex items-center gap-1">
+          <button id="btn-toggle-sound" class="w-8 h-8 sm:w-auto sm:px-2 sm:py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-90 border border-slate-700 rounded-xl text-xs font-bold text-slate-300 transition flex items-center justify-center" title="Toggle Sound FX">
+            🔊
+          </button>
+          <button id="btn-toggle-speech" class="w-8 h-8 sm:w-auto sm:px-2 sm:py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-90 border border-slate-700 rounded-xl text-xs font-bold text-slate-300 transition flex items-center justify-center" title="Toggle Voice Narration">
+            🗣️
+          </button>
+        </div>
+
+        <!-- Mobile More Menu Button -->
+        <div class="relative md:hidden">
+          <button id="btn-mobile-more" class="w-8 h-8 bg-slate-800 hover:bg-slate-700 active:scale-90 border border-slate-700 rounded-xl text-xs font-bold text-indigo-300 flex items-center justify-center shadow">
+            ⋮
+          </button>
+          <!-- Dropdown menu -->
+          <div id="mobile-more-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl py-2 z-50 text-xs">
+            <button id="btn-mobile-diploma" class="w-full px-4 py-2 text-left font-bold text-amber-300 hover:bg-slate-800 flex items-center gap-2">
+              🎓 View Chemist Diploma
+            </button>
+            <button id="btn-mobile-help" class="w-full px-4 py-2 text-left font-bold text-indigo-300 hover:bg-slate-800 flex items-center gap-2">
+              ❓ Help & How to Play
+            </button>
+            <button id="btn-mobile-fullscreen" class="w-full px-4 py-2 text-left font-bold text-slate-300 hover:bg-slate-800 flex items-center gap-2">
+              ⛶ Fullscreen Mode
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Game Navigation Tabs (Desktop & Tablet Strip) -->
+  <nav class="max-w-7xl mx-auto px-3 sm:px-4 mt-2 sm:mt-3">
+    <div class="touch-scroll-nav bg-slate-900/70 p-1.5 rounded-2xl border border-slate-800/80 backdrop-blur-sm">
+      <button class="mode-tab-btn px-3 py-2 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg whitespace-nowrap" data-mode="explorer">
+        🧪 Lab Explorer
+      </button>
+      <button class="mode-tab-btn px-3 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 whitespace-nowrap" data-mode="realworld">
+        🧍 Inside Real Life
+      </button>
+      <button class="mode-tab-btn px-3 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 whitespace-nowrap" data-mode="thermal">
+        🌡️ Thermal Cryo-Burner
+      </button>
+      <button class="mode-tab-btn px-3 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 whitespace-nowrap" data-mode="molecules">
+        ⚗️ Molecule Kitchen
+      </button>
+      <button class="mode-tab-btn px-3 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 whitespace-nowrap" data-mode="fireworks">
+        🎆 Fireworks Chemist
+      </button>
+      <button class="mode-tab-btn px-3 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 whitespace-nowrap" data-mode="detective">
+        🕵️‍♂️ Detective ("Who Am I?")
+      </button>
+      <button class="mode-tab-btn px-3 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 whitespace-nowrap" data-mode="match">
+        ⚡ Match Rush
+      </button>
+      <button class="mode-tab-btn px-3 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 whitespace-nowrap" data-mode="builder">
+        ⚛️ Atom Builder
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main App Content -->
+  <main class="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-6 pb-24 md:pb-6">
+
+    <!-- View 1: Lab Explorer (Interactive Periodic Table) -->
+    <section id="explorer-view" class="space-y-3 sm:space-y-4">
+      
+      <!-- Search & Filters Toolbar -->
+      <div class="bg-slate-900/85 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xl space-y-3">
+        
+        <!-- View Mode Switcher Banner (Prominent for Mobile & Desktop) -->
+        <div class="flex items-center justify-between flex-wrap gap-2 pb-2.5 border-b border-slate-800">
+          <div class="flex items-center gap-1.5">
+            <span class="text-[11px] sm:text-xs font-bold text-slate-300">View Style:</span>
+            <!-- Segmented Control -->
+            <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <button id="view-mode-cards" class="view-toggle-btn px-3 py-1.5 rounded-lg text-xs font-black bg-indigo-600 text-white shadow-md flex items-center gap-1.5 transition">
+                <span>🃏</span>
+                <span>Kid Cards</span>
+              </button>
+              <button id="view-mode-grid" class="view-toggle-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5 transition">
+                <span>🗺️</span>
+                <span>Full Table</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Zoom & Auto-Fit Toolbar (Shows when Grid Table is active) -->
+          <div id="grid-zoom-toolbar" class="hidden flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button id="btn-toggle-autofit" class="px-2.5 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shadow">
+              <span>📐</span>
+              <span id="autofit-btn-text">Auto-Fit (No Scroll)</span>
+            </button>
+            <div id="manual-zoom-controls" class="flex items-center gap-1">
+              <button id="btn-zoom-out" class="px-2 py-0.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition" title="Zoom Out">-</button>
+              <span id="zoom-level-text" class="text-[11px] font-mono text-slate-400 px-1 select-none">100%</span>
+              <button id="btn-zoom-in" class="px-2 py-0.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition" title="Zoom In">+</button>
+              <button id="btn-zoom-reset" class="px-2 py-0.5 text-slate-400 hover:text-white rounded-lg text-xs font-bold transition" title="Full Size (100%)">1:1</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-2.5 items-center justify-between">
+          <!-- Search Box with Clear Button -->
+          <div class="relative w-full md:w-80">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-sm">🔍</span>
+            <input 
+              id="search-input" 
+              type="text" 
+              placeholder="Search Gold, He, #79..." 
+              class="w-full pl-9 pr-9 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+            >
+            <button id="btn-clear-search" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-white text-xs hidden">✕</button>
+          </div>
+
+          <!-- State of Matter Filter -->
+          <div id="state-filters" class="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
+            <span class="text-[11px] text-slate-400 font-bold mr-0.5">State:</span>
+            <button class="state-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold border bg-sky-600 border-sky-400 text-white shadow" data-state="all">
+              All
+            </button>
+            <button class="state-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold border bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-500" data-state="Solid">
+              🪨 Solid
+            </button>
+            <button class="state-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold border bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-500" data-state="Liquid">
+              💧 Liquid
+            </button>
+            <button class="state-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold border bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-500" data-state="Gas">
+              💨 Gas
+            </button>
+            <button class="state-filter-btn px-2.5 py-1 rounded-full text-[11px] font-bold border bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-500" data-state="Synthetic">
+              🔬 Lab Synthetic
+            </button>
+          </div>
+        </div>
+
+        <!-- Category Filters -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none">
+          <div id="category-filters" class="touch-scroll-nav flex items-center gap-1.5">
+            <!-- Dynamically injected -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Element Selection Banner (Shows currently selected element above table) -->
+      <div id="table-quick-banner" class="hidden bg-slate-900/95 border border-indigo-500/40 rounded-2xl p-3 items-center justify-between gap-3 shadow-xl transition-all">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span id="banner-elem-avatar" class="text-3xl animate-bounce flex-shrink-0">🚀</span>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span id="banner-elem-number" class="text-[10px] font-mono font-bold text-indigo-300 bg-indigo-950 px-1.5 py-0.5 rounded border border-indigo-500/30">#1</span>
+              <span id="banner-elem-symbol" class="text-base font-black text-white">H</span>
+              <span id="banner-elem-name" class="text-xs font-bold text-slate-200">Hydrogen</span>
+            </div>
+            <p id="banner-elem-superpower" class="text-[11px] text-amber-300 truncate max-w-xs sm:max-w-md">Powers the stars and Sun!</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 flex-shrink-0">
+          <button id="btn-banner-speak" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1 transition shadow active:scale-95">
+            <span>🔊</span>
+            <span class="hidden sm:inline">Say</span>
+          </button>
+          <button id="btn-banner-lab" class="px-2.5 py-1 bg-teal-800 hover:bg-teal-700 text-teal-200 rounded-xl text-xs font-bold flex items-center gap-1 transition shadow active:scale-95">
+            <span>⚗️</span>
+            <span class="hidden sm:inline">Lab</span>
+          </button>
+          <button id="btn-banner-action" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center gap-1 transition shadow active:scale-95">
+            <span>⚡</span>
+            <span>Actions</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Orientation Hint Pill -->
+      <div id="mobile-orientation-hint" class="orientation-hint bg-gradient-to-r from-sky-950 to-indigo-950 border border-sky-500/40 rounded-xl p-2.5 items-center justify-between gap-2 shadow-lg">
+        <div class="flex items-center gap-2 text-xs text-sky-200">
+          <span class="text-xl">📱</span>
+          <span><strong>Mobile Tip:</strong> Rotate phone sideways for a larger Table, or use <strong>Auto-Fit</strong>!</span>
+        </div>
+        <button id="btn-switch-to-cards" class="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-[11px] font-bold whitespace-nowrap shadow">
+          Switch to Cards 🃏
+        </button>
+      </div>
+
+      <!-- Mode 1: Traditional Periodic Table Grid with Zoom/Pan Viewport -->
+      <div id="grid-table-wrapper" class="table-zoom-viewport pb-4">
+        <div id="table-zoom-container" class="table-zoom-container">
+          <div id="periodic-table" class="periodic-table-grid mx-auto">
+            <!-- Dynamically generated 118 elements -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode 2: Mobile-Friendly Card Deck View -->
+      <div id="card-deck-view" class="hidden">
+        <div id="card-deck" class="card-deck-grid">
+          <!-- Dynamically generated element cards -->
+        </div>
+      </div>
+    </section>
+
+    <!-- View 2: Mini-Game Container (Detective, Match Rush, Builder, etc.) -->
+    <section id="game-mode-view" class="hidden min-h-[500px]">
+      <!-- Dynamically generated game modes -->
+    </section>
+
+  </main>
+
+  <!-- Element Showcase Modal -->
+  <div id="element-modal" class="modal-backdrop">
+    <div class="modal-card bg-slate-900 text-white border border-slate-700 p-6 relative">
+      
+      <!-- Navigation & Close Buttons -->
+      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <button id="modal-prev-btn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg text-xs flex items-center gap-1 shadow">
+            ◀ Previous
+          </button>
+          <button id="modal-next-btn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg text-xs flex items-center gap-1 shadow">
+            Next ▶
+          </button>
+        </div>
+        <button id="modal-close-btn" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center font-bold text-base transition">
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Body (Two-Column Layout) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Element Hero Card & Bohr Atom Model (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          
+          <!-- Hero Badge Card -->
+          <div class="bg-gradient-to-b from-slate-800 to-slate-950 border border-slate-700 rounded-2xl p-5 text-center relative overflow-hidden shadow-xl">
+            <div class="flex justify-between items-start">
+              <span id="modal-elem-number" class="text-xs font-mono font-bold text-indigo-400 bg-indigo-950/80 px-2.5 py-1 rounded-full border border-indigo-500/40">#1</span>
+              <div class="flex gap-1.5">
+                <span id="modal-elem-phase" class="text-[11px] font-bold text-sky-300 bg-sky-950 px-2 py-0.5 rounded-md border border-sky-500/30">Gas</span>
+                <span id="modal-elem-category" class="text-[11px] font-bold text-amber-300 bg-amber-950 px-2 py-0.5 rounded-md border border-amber-500/30">Nonmetal</span>
+              </div>
+            </div>
+
+            <!-- Avatar & Symbol -->
+            <div class="my-3">
+              <div id="modal-elem-avatar" class="text-6xl my-1 animate-float inline-block">🚀</div>
+              <div id="modal-elem-symbol" class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-tr from-sky-400 to-indigo-300 tracking-tight">H</div>
+              <div id="modal-elem-name" class="text-2xl font-black text-white mt-1">Hydrogen</div>
+              <div class="text-xs font-mono text-slate-400">Atomic Mass: <span id="modal-elem-mass">1.008</span> u</div>
+            </div>
+
+            <!-- Subtitle -->
+            <div id="modal-elem-title" class="text-sm font-bold text-amber-400 bg-slate-900/90 py-1.5 px-3 rounded-xl border border-amber-500/30 mt-2">
+              The Cosmic Pioneer
+            </div>
+          </div>
+
+          <!-- Animated Canvas Bohr Atom Model -->
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3 text-center">
+            <div class="flex justify-between items-center mb-1 px-2">
+              <span class="text-xs font-bold text-indigo-300 flex items-center gap-1">⚛️ Live Bohr Atom Model</span>
+              <span class="text-[10px] text-slate-400 font-mono">Shells: <span id="modal-shells-info">1</span></span>
+            </div>
+            
+            <canvas id="modal-atom-canvas" class="w-full h-56 rounded-xl mx-auto"></canvas>
+
+            <!-- Subatomic Particles Breakdown -->
+            <div class="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-slate-800">
+              <div class="bg-red-950/60 border border-red-500/40 rounded-lg p-1.5 text-center">
+                <div class="text-[10px] text-red-300 font-bold">Protons (+)</div>
+                <div id="modal-protons" class="text-base font-black text-red-400">1</div>
+              </div>
+              <div class="bg-blue-950/60 border border-blue-500/40 rounded-lg p-1.5 text-center">
+                <div class="text-[10px] text-blue-300 font-bold">Neutrons (0)</div>
+                <div id="modal-neutrons" class="text-base font-black text-blue-400">0</div>
+              </div>
+              <div class="bg-amber-950/60 border border-amber-500/40 rounded-lg p-1.5 text-center">
+                <div class="text-[10px] text-amber-300 font-bold">Electrons (-)</div>
+                <div id="modal-electrons" class="text-base font-black text-amber-400">1</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Characteristics & Real-World Applications (7 cols) -->
+        <div class="lg:col-span-7 space-y-5">
+          
+          <!-- Superpower Banner with Voice Narration Button -->
+          <div class="bg-gradient-to-r from-indigo-950 via-purple-950 to-slate-900 border border-indigo-500/40 rounded-2xl p-4 shadow-md">
+            <div class="flex justify-between items-start gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">⚡</span>
+                <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Superpower</span>
+              </div>
+              <button id="btn-modal-read-aloud" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow transition">
+                🔊 Read Aloud
+              </button>
+            </div>
+            <p id="modal-elem-superpower" class="text-sm md:text-base font-semibold text-slate-100 leading-snug">
+              The lightest element in the whole universe and powers the fiery Sun!
+            </p>
+          </div>
+
+          <!-- Did You Know? Funny Trivia Speech Bubble -->
+          <div>
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-xl">💡</span>
+              <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Did You Know?</span>
+            </div>
+            <div class="speech-bubble">
+              <p id="modal-elem-funfact" class="text-xs md:text-sm text-slate-200 leading-relaxed font-medium">
+                More than 90% of all atoms in the universe are Hydrogen atoms! You drink it every day as H₂O.
+              </p>
+            </div>
+          </div>
+
+          <!-- Real-World Applications Section -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🌍</span>
+                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Real-World Applications</span>
+              </div>
+              <span class="text-[11px] text-indigo-400 font-semibold">Click an application to test it!</span>
+            </div>
+
+            <!-- Application Tabs -->
+            <div id="modal-applications-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Interactive Animation Scene Display -->
+            <div id="modal-interactive-scene" class="mt-2">
+              <!-- Dynamically rendered interactive animation -->
+            </div>
+          </div>
+
+          <!-- Direct Lab Quick-Actions Bar -->
+          <div class="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 bg-slate-950/70 p-3 rounded-2xl">
+            <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+              <span>⚡</span> Direct Lab Actions:
+            </span>
+            <div class="flex flex-wrap gap-2">
+              <button id="btn-modal-to-molecule" class="px-3 py-1.5 bg-teal-900/80 hover:bg-teal-800 active:scale-95 text-teal-200 border border-teal-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow">
+                ⚗️ Brew in Molecule Kitchen
+              </button>
+              <button id="btn-modal-to-thermal" class="px-3 py-1.5 bg-orange-900/80 hover:bg-orange-800 active:scale-95 text-orange-200 border border-orange-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow">
+                🌡️ Cryo-Burner
+              </button>
+              <button id="btn-modal-to-fireworks" class="px-3 py-1.5 bg-pink-900/80 hover:bg-pink-800 active:scale-95 text-pink-200 border border-pink-500/40 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow">
+                🎆 Flame Test
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Element Quick-Action Bottom Sheet -->
+  <div id="element-action-sheet" class="mobile-action-sheet-backdrop fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="mobile-action-sheet fixed bottom-0 left-0 right-0 bg-slate-900 border-t-2 border-slate-700/80 rounded-t-3xl p-4 max-h-[85vh] overflow-y-auto transform translate-y-full transition-transform duration-300 shadow-2xl space-y-3.5">
+      <!-- Drag Handle -->
+      <div class="w-12 h-1.5 bg-slate-700 rounded-full mx-auto"></div>
+
+      <!-- Header: Mascot, Symbol, Name & Badges -->
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div id="sheet-elem-avatar" class="w-14 h-14 rounded-2xl bg-indigo-950/80 border border-indigo-500/40 flex items-center justify-center text-3xl shadow-inner animate-float flex-shrink-0">
+            🚀
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span id="sheet-elem-number" class="text-xs font-mono font-bold text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded-md border border-indigo-500/40">#1</span>
+              <span id="sheet-elem-symbol" class="text-lg font-black text-white">H</span>
+              <span id="sheet-elem-phase" class="text-[10px] font-bold text-sky-300 bg-sky-950 px-1.5 py-0.5 rounded border border-sky-500/30">Gas</span>
+              <span id="sheet-elem-category" class="text-[10px] font-bold text-amber-300 bg-amber-950 px-1.5 py-0.5 rounded border border-amber-500/30">Nonmetal</span>
+            </div>
+            <h3 id="sheet-elem-name" class="text-xl font-black text-white leading-tight mt-0.5">Hydrogen</h3>
+            <p id="sheet-elem-title" class="text-xs text-amber-300 font-semibold">The Cosmic Pioneer</p>
+          </div>
+        </div>
+        <button id="sheet-close-btn" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center font-bold text-sm active:scale-90 transition flex-shrink-0">
+          ✕
+        </button>
+      </div>
+
+      <!-- Superpower Quote Banner -->
+      <div class="bg-gradient-to-r from-indigo-950/90 to-purple-950/90 border border-indigo-500/40 rounded-xl p-3 flex items-start gap-2.5">
+        <span class="text-2xl flex-shrink-0">⚡</span>
+        <div>
+          <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Superpower</div>
+          <p id="sheet-elem-superpower" class="text-xs text-slate-100 font-medium leading-snug">
+            The lightest element in the whole universe and powers the fiery Sun!
+          </p>
+        </div>
+      </div>
+
+      <!-- Mobile Quick Action Buttons Grid -->
+      <div>
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+          <span>⚡ Kid Actions</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- 1. Voice Read Aloud -->
+          <button id="btn-sheet-speak" class="action-btn flex items-center gap-2.5 p-3 rounded-2xl bg-indigo-600 active:bg-indigo-700 text-white font-bold text-xs shadow-md border border-indigo-400/30 active:scale-95 transition text-left">
+            <span class="text-2xl">🗣️</span>
+            <div class="leading-tight">
+              <div class="font-black">Say Name!</div>
+              <div class="text-[9px] text-indigo-200 font-normal">Hear pronunciation</div>
+            </div>
+          </button>
+
+          <!-- 2. Full Showcase / Toys -->
+          <button id="btn-sheet-showcase" class="action-btn flex items-center gap-2.5 p-3 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 active:from-amber-600 active:to-yellow-600 text-slate-950 font-black text-xs shadow-md active:scale-95 transition text-left">
+            <span class="text-2xl">📖</span>
+            <div class="leading-tight">
+              <div>Explore Toys</div>
+              <div class="text-[9px] text-slate-900 font-normal">Applications & trivia</div>
+            </div>
+          </button>
+
+          <!-- 3. Molecule Lab -->
+          <button id="btn-sheet-molecule" class="action-btn flex items-center gap-2.5 p-3 rounded-2xl bg-teal-900/80 active:bg-teal-800 text-teal-200 border border-teal-500/40 font-bold text-xs shadow active:scale-95 transition text-left">
+            <span class="text-2xl">⚗️</span>
+            <div class="leading-tight">
+              <div class="font-black text-white">Molecule Lab</div>
+              <div class="text-[9px] text-teal-300 font-normal">Brew in beaker</div>
+            </div>
+          </button>
+
+          <!-- 4. Thermal Burner -->
+          <button id="btn-sheet-thermal" class="action-btn flex items-center gap-2.5 p-3 rounded-2xl bg-orange-950/80 active:bg-orange-900 text-orange-200 border border-orange-500/40 font-bold text-xs shadow active:scale-95 transition text-left">
+            <span class="text-2xl">🌡️</span>
+            <div class="leading-tight">
+              <div class="font-black text-white">Heat / Freeze</div>
+              <div class="text-[9px] text-orange-300 font-normal">Watch phase change</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Footer (Previous / Next) -->
+      <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+        <button id="sheet-prev-btn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded-xl text-xs font-bold text-slate-300 flex items-center gap-1.5 transition">
+          ◀ Prev
+        </button>
+        <span class="text-[11px] text-slate-500 font-mono">1-Handed Controls</span>
+        <button id="sheet-next-btn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded-xl text-xs font-bold text-slate-300 flex items-center gap-1.5 transition">
+          Next ▶
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Games Menu Popup Sheet -->
+  <div id="mobile-games-sheet" class="mobile-games-backdrop fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="fixed bottom-16 left-3 right-3 sm:left-auto sm:right-4 sm:w-80 bg-slate-900 border border-slate-700/80 rounded-2xl p-4 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <span class="text-sm font-black text-amber-300 flex items-center gap-1.5">
+          <span>🎮</span> Choose a Game Mode
+        </span>
+        <button id="btn-close-games-sheet" class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 hover:text-white text-xs font-bold flex items-center justify-center">✕</button>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button class="mobile-game-pick-btn p-2.5 rounded-xl bg-slate-800 hover:bg-indigo-900 border border-slate-700 text-center transition active:scale-95 flex flex-col items-center" data-mode="detective">
+          <span class="text-2xl mb-1">🕵️‍♂️</span>
+          <span class="text-xs font-bold text-white">Detective</span>
+          <span class="text-[9px] text-indigo-300">"Who Am I?"</span>
+        </button>
+        <button class="mobile-game-pick-btn p-2.5 rounded-xl bg-slate-800 hover:bg-amber-900 border border-slate-700 text-center transition active:scale-95 flex flex-col items-center" data-mode="match">
+          <span class="text-2xl mb-1">⚡</span>
+          <span class="text-xs font-bold text-white">Match Rush</span>
+          <span class="text-[9px] text-amber-300">Speed Challenge</span>
+        </button>
+        <button class="mobile-game-pick-btn p-2.5 rounded-xl bg-slate-800 hover:bg-cyan-900 border border-slate-700 text-center transition active:scale-95 flex flex-col items-center" data-mode="builder">
+          <span class="text-2xl mb-1">⚛️</span>
+          <span class="text-xs font-bold text-white">Atom Builder</span>
+          <span class="text-[9px] text-cyan-300">Assemble Atoms</span>
+        </button>
+        <button class="mobile-game-pick-btn p-2.5 rounded-xl bg-slate-800 hover:bg-pink-900 border border-slate-700 text-center transition active:scale-95 flex flex-col items-center" data-mode="fireworks">
+          <span class="text-2xl mb-1">🎆</span>
+          <span class="text-xs font-bold text-white">Fireworks</span>
+          <span class="text-[9px] text-pink-300">Flame Colors</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticky Mobile Bottom Navigation Bar -->
+  <nav id="mobile-bottom-nav" class="mobile-bottom-bar fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 px-2 py-1.5 flex items-center justify-around shadow-2xl md:hidden">
+    <button class="mobile-nav-btn flex flex-col items-center justify-center p-1.5 rounded-xl transition-all text-indigo-400 font-bold active:scale-90" data-mode="explorer">
+      <span class="text-xl leading-none">🧪</span>
+      <span class="text-[10px] mt-1 font-bold">Elements</span>
+    </button>
+    <button class="mobile-nav-btn flex flex-col items-center justify-center p-1.5 rounded-xl transition-all text-slate-400 font-bold active:scale-90" data-mode="molecules">
+      <span class="text-xl leading-none">⚗️</span>
+      <span class="text-[10px] mt-1 font-bold">Molecules</span>
+    </button>
+    <button class="mobile-nav-btn flex flex-col items-center justify-center p-1.5 rounded-xl transition-all text-slate-400 font-bold active:scale-90" data-mode="realworld">
+      <span class="text-xl leading-none">🧍</span>
+      <span class="text-[10px] mt-1 font-bold">Real Life</span>
+    </button>
+    <button class="mobile-nav-btn flex flex-col items-center justify-center p-1.5 rounded-xl transition-all text-slate-400 font-bold active:scale-90" data-mode="thermal">
+      <span class="text-xl leading-none">🌡️</span>
+      <span class="text-[10px] mt-1 font-bold">Thermal</span>
+    </button>
+    <button id="btn-mobile-games-menu" class="mobile-nav-btn flex flex-col items-center justify-center p-1.5 rounded-xl transition-all text-slate-400 font-bold active:scale-90" data-mode="games-menu">
+      <span class="text-xl leading-none">🎮</span>
+      <span class="text-[10px] mt-1 font-bold">Games</span>
+    </button>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="data/elements.js"></script>
+  <script src="data/molecules.js"></script>
+  <script src="data/real-world-maps.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/atom-renderer.js"></script>
+  <script src="js/interactive-scenes.js"></script>
+  <script src="js/confetti.js"></script>
+  <script src="js/molecule-lab.js"></script>
+  <script src="js/fireworks-lab.js"></script>
+  <script src="js/real-world-lab.js"></script>
+  <script src="js/thermal-lab.js"></script>
+  <script src="js/diploma-modal.js"></script>
+  <script src="js/mascot-guide.js"></script>
+  <script src="js/game-modes.js"></script>
+  <script src="js/app.js?v=2"></script>
+</body>
+</html>

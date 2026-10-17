@@ -1,0 +1,472 @@
+/* ElementQuest: Kids' Periodic Table Adventure Stylesheet */
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@400;600;800;900&display=swap');
+
+:root {
+  --font-display: 'Fredoka', cursive, sans-serif;
+  --font-body: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: #0b0f19;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.12) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: #f8fafc;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Category Color Palette Classes */
+.cat-alkali { border-color: #ef4444; background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+.cat-alkaline { border-color: #f97316; background: rgba(249, 115, 22, 0.15); color: #fdba74; }
+.cat-transition { border-color: #eab308; background: rgba(234, 179, 8, 0.15); color: #fde047; }
+.cat-post-trans { border-color: #22c55e; background: rgba(34, 197, 94, 0.15); color: #86efac; }
+.cat-metalloid { border-color: #14b8a6; background: rgba(20, 184, 166, 0.15); color: #5eead4; }
+.cat-nonmetal { border-color: #0ea5e9; background: rgba(14, 165, 233, 0.15); color: #7dd3fc; }
+.cat-halogen { border-color: #a855f7; background: rgba(168, 85, 247, 0.15); color: #d8b4fe; }
+.cat-noble { border-color: #ec4899; background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+.cat-lanthanide { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.15); color: #c4b5fd; }
+.cat-actinide { border-color: #f43f5e; background: rgba(244, 63, 94, 0.15); color: #fda4af; }
+
+/* Periodic Table Grid */
+.periodic-table-grid {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(48px, 1fr));
+  grid-template-rows: repeat(7, 64px) 12px repeat(2, 64px);
+  gap: 3.5px;
+  width: 960px;
+  min-width: 960px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  box-sizing: border-box;
+}
+
+/* Element Tile */
+.element-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3px 4px;
+  border-width: 1.5px;
+  border-style: solid;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.element-tile:hover {
+  transform: translateY(-4px) scale(1.08);
+  z-index: 20;
+  box-shadow: 0 8px 20px -4px currentColor;
+}
+
+.element-tile:active {
+  transform: scale(0.96);
+}
+
+.element-tile.discovered::after {
+  content: '★';
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  font-size: 9px;
+  color: #fbbf24;
+  text-shadow: 0 0 4px #f59e0b;
+}
+
+.element-tile.dimmed {
+  opacity: 0.22;
+  filter: grayscale(80%);
+}
+
+.element-tile.highlighted {
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 0 20px #38bdf8;
+  z-index: 25;
+}
+
+/* Keyframe Animations */
+@keyframes floatUp {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; filter: drop-shadow(0 0 12px currentColor); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-float {
+  animation: floatUp 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 7, 18, 0.82);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-card {
+  max-width: 960px;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  border-radius: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8);
+  transform: scale(0.92);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-backdrop.open .modal-card {
+  transform: scale(1);
+}
+
+/* Speech Bubble */
+.speech-bubble {
+  position: relative;
+  background: rgba(30, 41, 59, 0.95);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 14px;
+}
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: -8px;
+  width: 14px;
+  height: 14px;
+  background: rgba(30, 41, 59, 0.95);
+  border-left: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.15);
+  transform: rotate(45deg);
+}
+
+/* Interactive Scene Wrapper */
+.interactive-scene-wrapper {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Print Stylesheet for Diploma */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-certificate, #printable-certificate * {
+    visibility: visible;
+  }
+  #printable-certificate {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    border: 12px double #b45309 !important;
+    padding: 30px !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+  }
+  #diploma-kid-name {
+    border: none !important;
+    background: transparent !important;
+    color: #1e1b4b !important;
+  }
+}
+
+/* Mobile & Touch Optimizations */
+button, a, .element-tile, .element-deck-card {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Horizontal Touch Scroll Navigation Strip */
+.touch-scroll-nav {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 4px;
+}
+.touch-scroll-nav::-webkit-scrollbar {
+  display: none;
+}
+.touch-scroll-nav > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Zoom Viewport for Periodic Table */
+.table-zoom-viewport {
+  width: 100%;
+  overflow-x: hidden; /* Zero horizontal scroll in Auto-Fit mode */
+  overflow-y: visible; /* Never vertically cut off bottom rows */
+  position: relative;
+  border-radius: 16px;
+  transition: height 0.22s ease;
+}
+
+.table-zoom-viewport.scrollable {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-zoom-container {
+  transform-origin: top center;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: block;
+  width: 960px;
+  margin: 0 auto;
+}
+
+/* Mobile-First Card Deck Grid */
+.card-deck-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+@media (min-width: 640px) {
+  .card-deck-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 14px;
+  }
+}
+@media (min-width: 1024px) {
+  .card-deck-grid {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 16px;
+  }
+}
+
+.element-deck-card {
+  position: relative;
+  border-radius: 20px;
+  border-width: 2px;
+  border-style: solid;
+  padding: 12px 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 185px;
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.45);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+}
+.element-deck-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 24px -4px currentColor;
+}
+.element-deck-card:active {
+  transform: scale(0.97);
+}
+.element-deck-card.discovered::after {
+  content: '★';
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 14px;
+  color: #fbbf24;
+  text-shadow: 0 0 6px #f59e0b;
+}
+
+/* Card Quick Action Buttons */
+.card-quick-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(30, 41, 59, 0.8);
+  color: #f1f5f9;
+  transition: all 0.15s ease;
+}
+.card-action-btn:active {
+  transform: scale(0.92);
+}
+.card-action-btn.btn-listen:hover, .card-action-btn.btn-listen:active {
+  background: #4f46e5;
+  border-color: #818cf8;
+}
+.card-action-btn.btn-lab:hover, .card-action-btn.btn-lab:active {
+  background: #0d9488;
+  border-color: #2dd4bf;
+}
+
+/* Mobile Bottom Navigation Bar */
+.mobile-bottom-bar {
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.mobile-nav-btn {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  transition: all 0.18s ease;
+}
+.mobile-nav-btn.active {
+  color: #818cf8 !important;
+  transform: translateY(-2px);
+}
+.mobile-nav-btn.active span:first-child {
+  filter: drop-shadow(0 0 8px rgba(129, 140, 248, 0.8));
+  transform: scale(1.15);
+}
+
+/* Mobile Element Quick-Action Bottom Sheet */
+.mobile-action-sheet-backdrop {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.mobile-action-sheet-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-action-sheet {
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
+  padding-bottom: max(20px, env(safe-area-inset-bottom) + 16px);
+}
+.mobile-action-sheet-backdrop.open .mobile-action-sheet {
+  transform: translateY(0);
+}
+
+/* Mobile Games Sheet */
+.mobile-games-backdrop {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+.mobile-games-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Orientation Hint Pill for Small Screens */
+.orientation-hint {
+  display: none;
+}
+@media (max-width: 768px) and (orientation: portrait) {
+  .orientation-hint {
+    display: flex;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Give main content room above sticky bottom nav */
+  main {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  
+  /* Make modal feel like a sleek full bottom sheet on phone */
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal-card {
+    max-height: 92vh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    padding: 18px 14px;
+    border-width: 2px 2px 0 2px;
+  }
+}
+
+@media (max-width: 640px) {
+  .element-tile {
+    padding: 3px 2px;
+  }
+}
